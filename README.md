@@ -22,7 +22,7 @@ open-source Cloud
 management framework. The two projects share the same APIs, but OSKen
 maintains compatibility with the latest Python packaged, while the Ryu
 development has frozen for a while. We will use pointers to the Ryu
-documentation and the two controllers can be used interexchangeably. 
+documentation and the two controllers can be used interchangeably. 
 
 ## Getting Started
 
@@ -157,7 +157,7 @@ As the controller had added an entry to the data strcutrue for the MAC address <
 So, as you have access to the hub controller and have it running with the provided topology, you should use this as a base to create your own Layer 2 learning switch.
 
 - For the in-memory data structure, you can use a dictionary (basically `JSON`) to store the MAC address to port mappings.
-- You will need to import more of the Ryu packages to access the fields in a packet's ethernet header:
+- You will need to import more of the OSKen packages to access the fields in a packet's ethernet header:
   - `from os_ken.lib.packet import ethernet`
   - Then a packet's ethernet header can be extracted from the data provided with the Packet In OpenFlow event message: `eth_header = packet.Packet(ev.msg.data).get_protocol(ethernet.ethernet)`
   - Specific fields can then be extracted, for example the destination MAC address: `eth_header.dst`
@@ -192,7 +192,7 @@ The OpenFlow controller and the software bridges in the Mininet topology should 
 
 In your layer 2 learning switch, use flow-mods in such a way that packets that have been added to the mappings data structure can be forwarded without being sent to the controller each time. Packets with destination MAC addresses that have not been added should still be sent to the controller so that the information from it can be added if necessary.
 
-The `add_flow` function provided with the template should be of use here. However, you could extend it so that timeout values could be passed via its parameters. [This part](https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html?highlight=OFPFlowMod#ryu.ofproto.ofproto_v1_3_parser.OFPFlowMod) of the Ryu documentation should be useful.
+The `add_flow` function provided with the template should be of use here. However, you could extend it so that timeout values could be passed via its parameters. [This part](https://docs.openstack.org/os-ken/latest/ofproto_v1_3_ref.html#os_ken.ofproto.ofproto_v1_3_parser.OFPFlowMod) of the OSKen documentation should be useful.
 
 ## Stage 4: Supporting Multiple Datapaths
 
@@ -202,7 +202,7 @@ The layer 2 learning switch so far can only support a single datapath connecting
 
 > Or you may have implemented multiple datapath support already? If so, go you!! 🎉
 
-Luckily, when events are sent to the controller they contain a reference to the datapath that sent the message. This datapath construct contains a unique ID (`dpid`). So to add support for multiple datapaths to your controller, you need to make sure each datapath can access its own separate state. This can be done in the Ryu controller by nesting the dictionary that holds the state into a dictionary of datapath IDs.
+Luckily, when events are sent to the controller they contain a reference to the datapath that sent the message. This datapath construct contains a unique ID (`dpid`). So to add support for multiple datapaths to your controller, you need to make sure each datapath can access its own separate state. This can be done in the OSKen controller by nesting the dictionary that holds the state into a dictionary of datapath IDs.
 
 Before you go and add this support though, you should make sure that you are running the topology that has 2 switches!
 
@@ -228,6 +228,6 @@ A solution for this tutorial will be available [here](https://github.com/scc365/
 
  - Network Testing Guide: [SCC365 GitHub](https://github.com/scc365/guide-network-testing)
  - The OpenFlow 1.3.5 Protocol Definition: [OpenNetworking](https://opennetworking.org/wp-content/uploads/2014/10/openflow-switch-v1.3.5.pdf)
- - The Ryu OpenFlow Controller Framework: [Ryu](https://ryu-sdn.org)
- - The Ryu Library Documentation (Replace ryu with os_ken): [Read The Docs](https://ryu.readthedocs.io/en/latest/)
+ - The OSKen OpenFlow Controller Framework: [OSKen](https://github.com/openstack/os-ken)
+ - The OSKen Library Documentation: [Read The Docs](https://docs.openstack.org/os-ken/latest/developing.html)
  - Ethernet Hub Information: [Wiki](https://en.wikipedia.org/wiki/Ethernet_hub)
