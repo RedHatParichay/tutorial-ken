@@ -222,7 +222,7 @@ Where the only change is the `--topo` flag in the `mn` command.
 
 ## Solution
 
-A solution for this tutorial will be available [here](https://github.com/scc365/tutorial-solution-ken) on GitHub. However, this tutorial is not assessed and is designed to help you get familiar with Ken, so make sure you make your own attempt before looking at the solution.
+A solution for this tutorial will be available [here](https://github.com/scc365/tutorial-solution-osken) on GitHub. However, this tutorial is not assessed and is designed to help you get familiar with Ken, so make sure you make your own attempt before looking at the solution.
 
 ## Links
 
