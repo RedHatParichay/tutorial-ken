@@ -98,7 +98,7 @@ Once running you should see that a datapath connects to the controller. To make 
 
 ## Stage 2: Adding Learning Functionality
 
-So what you should have running now is a small (star) topology where all the hosts are connected to a single datapath. This datapath is connected to a Ryu-based OpenFlow controller that acts as an Ethernet Hub. 
+So what you should have running now is a small (star) topology where all the hosts are connected to a single datapath. This datapath is connected to a Ken-based OpenFlow controller that acts as an Ethernet Hub. 
 
 ### Ethernet Hub
 
@@ -112,7 +112,7 @@ In some environments, this type of device can be useful primarily due its simpli
 
 The controller template provided here allows a connected OpenFlow-enabled device to act as an Ethernet Hub. But it is important to understand how this controller is programmed to be able to build your own.
 
-- The Python class `Controller` extends the Ryu provided class `OSKenApp`, so some functionality is handled automatically. For example, when a datapath establishes a connection with the controller, the controller sends a [`Features Request`](https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html#ryu.ofproto.ofproto_v1_3_parser.OFPFeaturesRequest).
+- The Python class `Controller` extends the Ken provided class `OSKenApp`, so some functionality is handled automatically. For example, when a datapath establishes a connection with the controller, the controller sends a [`Features Request`](https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html#ryu.ofproto.ofproto_v1_3_parser.OFPFeaturesRequest).
 - The function `features_handler` is set to be the response handler for the automatically sent Features Request. This is done via the Python function decorator ` @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)`. The function itself does have a use in this Hub controller. It installs a flow table modification with the lowest priority that just sends the packet to the controller, so this flow table entry acts as a flow table miss rule.
 - The function `packet_in_handler` is set to be the handler for [`Packet In` events](https://ryu.readthedocs.io/en/latest/ofproto_v1_3_ref.html#ryu.ofproto.ofproto_v1_3_parser.OFPPacketIn). When a packet comes into the controller (as is set to be the default defined in the `features_handler` function), this function handles the event. In this implementation it takes the event, extracts the datapath information, creates an output action that is to output the packet on all ports (flood), and sends this packet out using the action. Perhaps the most important take-away is the following line that specifies the flood action:
   ```Python
@@ -150,7 +150,7 @@ As the controller had added an entry to the data strcutrue for the MAC address <
 </details>
 <br>
 
-### Implement a Switch with Ryu
+### Implement a Switch with OSKen
 
 > 🧑‍🏫 LU Students: A portion of this section will be covered in a walk-through in the lab session!
 
@@ -158,7 +158,7 @@ So, as you have access to the hub controller and have it running with the provid
 
 - For the in-memory data structure, you can use a dictionary (basically `JSON`) to store the MAC address to port mappings.
 - You will need to import more of the Ryu packages to access the fields in a packet's ethernet header:
-  - `from ryu.lib.packet import ethernet`
+  - `from os_ken.lib.packet import ethernet`
   - Then a packet's ethernet header can be extracted from the data provided with the Packet In OpenFlow event message: `eth_header = packet.Packet(ev.msg.data).get_protocol(ethernet.ethernet)`
   - Specific fields can then be extracted, for example the destination MAC address: `eth_header.dst`
 
@@ -222,12 +222,12 @@ Where the only change is the `--topo` flag in the `mn` command.
 
 ## Solution
 
-A solution for this tutorial will be available [here](https://github.com/scc365/tutorial-solution-ryu) on GitHub. However, this tutorial is not assessed and is designed to help you get familiar with Ryu, so make sure you make your own attempt before looking at the solution.
+A solution for this tutorial will be available [here](https://github.com/scc365/tutorial-solution-ken) on GitHub. However, this tutorial is not assessed and is designed to help you get familiar with Ken, so make sure you make your own attempt before looking at the solution.
 
 ## Links
 
  - Network Testing Guide: [SCC365 GitHub](https://github.com/scc365/guide-network-testing)
  - The OpenFlow 1.3.5 Protocol Definition: [OpenNetworking](https://opennetworking.org/wp-content/uploads/2014/10/openflow-switch-v1.3.5.pdf)
  - The Ryu OpenFlow Controller Framework: [Ryu](https://ryu-sdn.org)
- - The Ryu Library Documentation: [Read The Docs](https://ryu.readthedocs.io/en/latest/)
+ - The Ryu Library Documentation (Replace ryu with os_ken): [Read The Docs](https://ryu.readthedocs.io/en/latest/)
  - Ethernet Hub Information: [Wiki](https://en.wikipedia.org/wiki/Ethernet_hub)
