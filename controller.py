@@ -57,7 +57,6 @@ class Controller(OSKenApp):
         parser = msg.datapath.ofproto_parser # get parser for message creation
         dpid = msg.datapath.id              # get data path id
 
-        print("Here")
         # Parses the raw packet data into a structured format.
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocol(ethernet.ethernet)  # Extract Ethernet header
@@ -69,19 +68,15 @@ class Controller(OSKenApp):
         src_mac = eth.src  # Source MAC address
         dst_mac = eth.dst  # Destination MAC address
         in_port = msg.match['in_port']  # Input port where packet arrived
-        dpid = datapath.id  # Unique switch identifier
 
         self.logger.info("Received packet: dpid={} in_port={} src={} dst={}".format(dpid, in_port, src_mac, dst_mac))
 
+        # Initialize MAC table for this switch if not present
         if dpid not in self.macAddrToPort:
             self.macAddrToPort[dpid] = {}
-        # Initialize MAC table for this switch if not present
-        self.macAddrToPort[dpid][src_mac] = in_port
 
-        # Learn the source MAC only if it's not already known
+        # Learn the source MAC address
         if src_mac not in self.macAddrToPort[dpid]:
-
-            # Learn the source MAC address
             self.macAddrToPort[dpid][src_mac] = in_port
             self.logger.info("Learned MAC {} - Port {} on Switch {}".format(src_mac, in_port, dpid))
 
@@ -94,9 +89,12 @@ class Controller(OSKenApp):
         # Install a flow rule if the destination MAC is known
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(eth_dst=dst_mac)
-            self.__add_flow(datapath, priority=1, match=match, actions=actions)
+            flow_timeout = 10  # Timeout after 10 seconds
+            self.__add_flow(datapath, priority=1, match=match, actions=actions, timeout=flow_timeout)
             self.logger.info("Flow added: MAC {} → Port {} on Switch {}".format(dst_mac, out_port, dpid))
-        print("Here2")
+        else:
+            self.logger.info("Flooding packet: dst_mac={} not learned".format(dst_mac))
+
         # If the switch does NOT buffer the packet (`OFP_NO_BUFFER`), include the full packet data.
         # Otherwise, set `data` to `None` to avoid sending redundant packet data (switch already has it).
         data = msg.data if msg.buffer_id == ofproto.OFP_NO_BUFFER else None
@@ -106,9 +104,7 @@ class Controller(OSKenApp):
         self.logger.info("Sending packet out")              # logger to print messages to terminal
         datapath.send_msg(out)                              # send message along chosen path
 
-        return
-
-    def __add_flow(self, datapath, priority, match, actions):
+    def __add_flow(self, datapath, priority, match, actions, timeout=0):
         '''
         Install Flow Table Modification
 
@@ -120,7 +116,12 @@ class Controller(OSKenApp):
         ofproto = datapath.ofproto                      # Get OpenFlow protocol versio
         parser = datapath.ofproto_parser                # Get OpenFlow parser
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-        mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst)
+
+        # Define timeout if provided
+        if timeout:
+            mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst, idle_timeout=timeout)
+        else:
+            mod = parser.OFPFlowMod(datapath=datapath, priority=priority, match=match, instructions=inst)
 
         # logger to print messages to terminal
         self.logger.info("Flow-Mod written to {}".format(dpid_to_str(datapath.id)))
